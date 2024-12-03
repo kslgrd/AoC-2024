@@ -12,30 +12,76 @@ const reports = input
   .split("\n")
   .map((row) => row.split(" ").map((v) => parseInt(v, 10)));
 
-enum ValueChange {
-  INCREASE = 1,
-  DECREASE = -1,
-  STATIC = 0,
-}
+const validateLevel = (
+  levelsAreIncreasing: boolean,
+  curr: number,
+  prev: number
+) => {
+  // must be increasing or decreasing
+  if (curr === prev) return false;
 
-// Part 1: How many reports are safe?
-const isSafeReport = (report: number[]) => {
-  let levelsAreIncreasing: boolean | undefined = undefined;
-  for (let i = 1; i < report.length; i++) {
-    const curr = report[i];
-    const prev = report[i - 1];
-    // must be increasing or decreasing
-    if (curr === prev) return false;
+  const diff = curr - prev;
+  const valueIsIncreasing = curr > prev ? true : false;
 
-    const diff = curr - prev;
-    const valueIsIncreasing = curr - prev > 0 ? true : false;
-    if (levelsAreIncreasing === undefined)
-      levelsAreIncreasing = valueIsIncreasing;
-    // level changes can't switch directions
-    if (levelsAreIncreasing !== valueIsIncreasing) return false;
-    if (Math.abs(diff) > 3) return false;
-  }
+  // level changes can't switch directions
+  if (levelsAreIncreasing !== valueIsIncreasing) return false;
+  if (Math.abs(diff) > 3) return false;
   return true;
 };
 
-console.log(`There are ${reports.filter(isSafeReport).length} safe reports.`);
+const isSafeReport =
+  (enableDampener = false) =>
+  (report: number[]) => {
+    let levelsAreIncreasing: boolean | undefined = undefined;
+    for (let i = 1; i < report.length; i++) {
+      const curr = report[i];
+      const prev = report[i - 1];
+      if (levelsAreIncreasing === undefined) levelsAreIncreasing = curr > prev;
+
+      const isValidLevel = validateLevel(levelsAreIncreasing, curr, prev);
+      if (!isValidLevel) {
+        console.log(
+          "Index",
+          i,
+          "is invalid for",
+          report,
+          enableDampener ? "Retry enabled" : "No retry"
+        );
+        return enableDampener ? retryAtFailedValue(report, i) : false;
+      }
+    }
+    if (enableDampener === false) console.log("VALID AFTER DAMPENED");
+    return true;
+  };
+
+const retryAtFailedValue = (
+  report: number[],
+  invalidLevelIndex: number
+): boolean => {
+  const isSafeUndampened = isSafeReport(false);
+
+  // It's most likely that the removing the current index will fix it, but removing any previous one _could_ also...
+  // might as well try them all!
+  const indexesToRemove = [...Array(invalidLevelIndex + 1).keys()].reverse();
+  console.log("Try removing indexes in this order", indexesToRemove);
+
+  return indexesToRemove
+    .map((i) => removeValueAtIndex(report, i))
+    .some(isSafeUndampened);
+};
+
+const removeValueAtIndex = (report: number[], index: number) => {
+  const filteredReport = [...report];
+  filteredReport.splice(index, 1);
+  console.log("Retrying with", filteredReport);
+  return filteredReport;
+};
+
+// Part 1: How many reports are safe?
+// console.log(`There are ${reports.filter(isSafeReport()).length} safe reports.`);
+
+console.log(
+  `There are ${
+    reports.filter(isSafeReport(true)).length
+  } safe dampened reports.`
+);
