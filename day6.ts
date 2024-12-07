@@ -121,6 +121,19 @@ const positionsInPath = (start: Coord, end: Coord) => {
   return positions;
 };
 
+const findExitPoint = (direction: Direction, { row, col }: Coord): Coord => {
+  switch (direction) {
+    case Direction.DOWN:
+      return { col, row: rows };
+    case Direction.RIGHT:
+      return { col: cols, row };
+    case Direction.UP:
+      return { col, row: -1 };
+    case Direction.LEFT:
+      return { col: -1, row };
+  }
+};
+
 const solve = (grid: Grid) => {
   let direction = startingDirection;
   let guardPosition = findInitialPosition(grid);
@@ -143,15 +156,9 @@ const solve = (grid: Grid) => {
     // The guard has left the room
     if (obstaclePosition === null) {
       // Pain in the ass... which cells does he visit on his way out?
-      // Hack this in because I know he's going down...
-      if (direction === Direction.DOWN) {
-        markVisited(
-          positionsInPath(guardPosition, {
-            col: guardPosition.col,
-            row: rows,
-          })
-        );
-      }
+      const exitPoint = findExitPoint(direction, guardPosition);
+      console.log(`- Exiting at row ${exitPoint.row}, col ${exitPoint.col}`);
+      markVisited(positionsInPath(guardPosition, exitPoint));
       console.log("👋 Bye guard!");
       break;
     }
