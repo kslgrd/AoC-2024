@@ -24,11 +24,11 @@ const calculate = (numbers: number[], operations: string[]) => {
   return result;
 };
 
-type Operator = {
+type Calibration = {
   total: number;
   nums: number[];
 };
-const operators: Operator[] = input.split("\n").map((row) => {
+const calibrations: Calibration[] = input.split("\n").map((row) => {
   const [total, nums] = row.split(": ");
   return {
     total: parseInt(total, 10),
@@ -36,8 +36,8 @@ const operators: Operator[] = input.split("\n").map((row) => {
   };
 });
 
-const solve = (operations: string[], operators: Operator[]) => {
-  return operators.reduce((acc, { total, nums }) => {
+const solve = (operations: string[], calibrations: Calibration[]) => {
+  return calibrations.reduce((acc, { total, nums }) => {
     const allOperationCombs = getOperatorCombinations(
       operations,
       nums.length - 1
@@ -50,5 +50,5 @@ const solve = (operations: string[], operators: Operator[]) => {
 };
 
 console.log(
-  `Part 1: sum of possible operations ${solve(["*", "+"], operators)}`
+  `Part 1: sum of possible operations ${solve(["*", "+"], calibrations)}`
 );
