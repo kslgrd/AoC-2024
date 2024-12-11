@@ -85,16 +85,30 @@ const scorePaths = (paths: Coord[][]) => {
     .reduce((acc, v) => acc + v);
 };
 
+const ratePaths = (paths: Coord[][]) => paths.length;
+
 const solve = (input: string) => {
   const grid = build2dGrid(input);
   const trailheads = findTrailheads(grid);
-  const trailheadScores = trailheads
+  return trailheads
     .map((trailhead) => findPaths(grid, trailhead))
-    .map((paths) => scorePaths(paths));
-
-  return trailheadScores.reduce((acc, v) => acc + v);
+    .reduce<{ ratings: number[]; scores: number[] }>(
+      (acc, paths) => {
+        acc.ratings.push(ratePaths(paths));
+        acc.scores.push(scorePaths(paths));
+        return acc;
+      },
+      { ratings: [], scores: [] }
+    );
 };
 
+const sum = (arr: number[]) => arr.reduce((acc, v) => acc + v);
+const { ratings, scores } = solve(input);
+
 console.log(
-  `Part 1: the sum of scores for all discovered trailheads is ${solve(input)}`
+  `Part 1: the sum of scores for all discovered trailheads is ${sum(scores)}`
+);
+
+console.log(
+  `Part 2: the sum of ratings for all discovered trailheads is ${sum(ratings)}`
 );
